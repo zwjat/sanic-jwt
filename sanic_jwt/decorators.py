@@ -101,6 +101,13 @@ async def _do_protection(*args, **kwargs):
                     "redirect_url", instance.auth.config.login_redirect_url()
                 )
                 if where_to is not None:
+                    if request.app.redis:   
+                        import uuid
+                        suffix = str(uuid.uuid4())
+                        await request.app.redis.execute('set', '_prev.url.' + suffix, request.url)
+                        resp = redirect(where_to, status=302)
+                        resp.cookies['purl'] = suffix
+                        return resp 
                     return redirect(where_to, status=302)
 
             raise exceptions.Unauthorized(reasons, status_code=status)
